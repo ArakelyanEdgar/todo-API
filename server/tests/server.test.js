@@ -111,3 +111,55 @@ describe('GET /todos', () => {
     })
 
 })
+
+describe('GET /todos/:id', () => {
+
+    it('Should return 404 for invalid id', (done) => {
+        request(app)
+            .get('/todos/1')
+            .expect(404)
+            .end((err, res) => {
+                if (err){
+                    done(err)
+                    return
+                }
+
+                done()
+            })
+    })
+
+    it('Should return 404 for nonexistent id', (done) => {
+        request(app)
+            .get('/todos/5acef7987b2c8628fcb56a67')
+            .expect(404)
+            .end((err, res) => {
+                if (err){
+                    done(err)
+                    return
+                }
+
+                done()
+            })
+    })
+
+    it('Should return 200 for id that exists in Todo db', (done) => {
+        let id = ""
+        Todo.findOne().then((doc) => {
+            id = doc._id
+        }).then(() => {
+            request(app)
+                .get(`/todos/${id}`)
+                .expect(200)
+                .end((err, res) => {
+                    if (err){
+                        done(err)
+                        return
+                    }
+    
+                    done()
+                })
+        }).catch(err => {
+            done(err)
+        })
+    })
+})
