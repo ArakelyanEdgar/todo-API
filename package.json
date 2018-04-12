@@ -4,8 +4,12 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start": "node server/server.js",
     "test": "mocha server/**/*.test.js --timeout=3000",
     "test-watch": "nodemon --exec \"npm test\""
+  },
+  "engines": {
+    "node": "8.11.1"
   },
   "author": "Edgar Arakelyan",
   "license": "ISC",
