@@ -10,7 +10,7 @@ let app = express()
 //parse json requests
 app.use(bodyParser.json())
 
-//post method on todos
+//post method on todos saves a todo
 app.post('/todos', (req, res) => {
     let todo = new Todo({
         text: req.body.text
@@ -21,6 +21,15 @@ app.post('/todos', (req, res) => {
     }, (err) => {
         res.status(400).send(err)
         console.log(err)
+    })
+})
+
+//get method on todos returns all todos
+app.get('/todos', (req, res) => {
+    Todo.find().then((todos) => {
+        res.status(200).send(todos)
+    }, (err) => {
+        res.status(400).send(err)
     })
 })
 
