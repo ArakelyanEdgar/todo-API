@@ -163,3 +163,52 @@ describe('GET /todos/:id', () => {
         })
     })
 })
+
+describe('DELETE /todos/:id', () => {
+    it('Should respond with status 404 for invalid id', (done) => {
+        request(app)
+            .delete('/todos/1')
+            .expect(404)
+            .end((err, res) => {
+                if (err){
+                    done(err)
+                    return
+                }
+
+                done()
+            })
+    })
+
+    it('Should respond with status 404 for id that does not exist in db', (done) => {
+        request(app)
+            .delete('/todos/5ad01e3843b4bb0d0c9de6c9')
+            .expect(404)
+            .end((err, res) => {
+                if (err){
+                    done(err)
+                    return
+                }
+
+                done()
+            })
+    })
+
+    it('Should respond with status 200 for deleting id', (done) => {
+        Todo.findOne().then(doc => {
+            let id = doc._id
+            request(app)
+                .delete(`/todos/${id}`)
+                .expect(200)
+                .end((err, res) => {
+                    if (err){
+                        done(err)
+                        return
+                    }
+    
+                    done()
+                })
+        }).catch(err => {
+            done(err)
+        })
+    })
+})
