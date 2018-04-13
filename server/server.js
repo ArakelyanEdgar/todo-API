@@ -55,6 +55,28 @@ app.get('/todos/:id', (req, res) => {
     })
 })
 
+//DELETE /todos/:id | deletes a todo by its id
+app.delete('/todos/:id', (req, res) => {
+    let id = req.params.id
+    //validate id
+    if (!ObjectID.isValid(id)){
+        res.status(400).send(`INVALID id`)
+        return
+    }
+
+    Todo.findByIdAndRemove(id).then((todo) => {
+        //if todo === null implies todo didn't exist in db
+        if (todo === null){
+            res.status(404).send(`todo with id: ${id} does not exist`)
+            return
+        }
+
+        res.status(200).send(`todo with id: ${id} has been deleted`)
+    }).catch(err => {
+        res.status(400).send('Error deleting todo')
+    })
+})
+
 
 
 
