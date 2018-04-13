@@ -1,12 +1,13 @@
-let express = require('express')
-let bodyParser = require('body-parser')
+const express = require('express')
+const bodyParser = require('body-parser')
+const _ = require('lodash')
 
-let mongoose = require('./db/mongoose.js').mongoose
-let User = require('./models/user').User
-let Todo = require('./models/todo').Todo
-let ObjectID = require('mongodb').ObjectID
+const mongoose = require('./db/mongoose.js').mongoose
+const User = require('./models/user').User
+const Todo = require('./models/todo').Todo
+const ObjectID = require('mongodb').ObjectID
 
-let app = express()
+const app = express()
 
 //parse json requests
 app.use(bodyParser.json())
@@ -71,12 +72,45 @@ app.delete('/todos/:id', (req, res) => {
             return
         }
 
-        res.status(200).send(`todo with id: ${id} has been deleted`)
+        res.status(200).send(`todo ${todo} has been deleted`)
     }).catch(err => {
         res.status(400).send('Error deleting todo')
     })
 })
 
+//PATCH /todos/:id | updates a todo by its id
+app.patch('/todos/:id', (req, res) => {
+    let id = req.params.id
+
+    //determine if id is valid
+    if (!ObjectID.isValid(id)){
+        res.status(404).send('INVALID id')
+        return
+    }
+
+    //Only allowing users to change text and completed properties of todo
+    let body = _.pick(req.body, ['text', 'completed'])
+    
+    //check if completed is boolean
+    if (!_.isBoolean(body.completed) && body.completed){
+        res.status(400).send('completed must be a boolean')
+        return
+    }
+    else if (body.completed)
+        body.completedAt = Date.now()
+
+    Todo.findByIdAndUpdate(id, body, {new: true}).then(todo => {
+        if (todo === null){
+            res.status(404).send(`todo with id: ${id} does not exist`)
+            return
+        }
+
+        res.status(200).send(`todo updated to: ${todo}`)
+    }).catch(err => {
+        res.status(400).send(err)
+    })
+
+})
 
 
 
