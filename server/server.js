@@ -1,7 +1,6 @@
 //by changing env we can differentiate between production,development and test databases
 //note that heroku sets node_env to production and MONGODB_URI and by default node_env is undefined
 let env = process.env.NODE_ENV || 'development'
-console.log(`environemnt is ${env}`)
 
 if (env === 'development'){
     process.env.PORT = 3000
