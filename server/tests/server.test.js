@@ -246,10 +246,12 @@ describe('PATCH /todos/:id', () => {
         Todo.findOne().then(todo => {
             let id = todo._id
             let text = 'Updated text test'
+            let completed = true
             request(app)
             .patch(`/todos/${id}`)
             .send({
-                text
+                text,
+                completed
             })
             .expect(200)
             .end((err, res) => {
