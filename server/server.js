@@ -115,6 +115,24 @@ app.patch('/todos/:id', (req, res) => {
 
 })
 
+//POST /users | creates a user
+app.post('/users', (req, res) => {
+    let body = _.pick(req.body, 'email', 'password')
+    let user = new User(body)
+
+    user.save().then(user => {
+        return user.generateAuthToken()
+        // res.status(200).send(doc)
+    }).then(token => {
+        //x-auth will allow us to verify for GET and PATCH easily
+        //note we do not want to send password back to user
+        res.header('x-auth', token).status(200).send(_.pick(user, '_id', 'email'))
+    })
+    .catch(err => {
+        res.status(400).send(err)
+    })
+})
+
 
 
 let port = process.env.PORT
