@@ -1,3 +1,17 @@
+//by changing env we can differentiate between production,development and test databases
+//note that heroku sets node_env to production and MONGODB_URI and by default node_env is undefined
+let env = process.env.NODE_ENV || 'development'
+console.log(`environemnt is ${env}`)
+
+if (env === 'development'){
+    process.env.PORT = 3000
+    process.env.MONGODB_URI = 'mongodb://localhost:27017/TodoApp'
+}
+else if (env === 'test'){
+    process.env.PORT = 3000
+    process.env.MONGODB_URI = 'mongodb://localhost:27017/TodoAppTest'
+}
+
 const express = require('express')
 const bodyParser = require('body-parser')
 const _ = require('lodash')
@@ -115,7 +129,7 @@ app.patch('/todos/:id', (req, res) => {
 
 
 
-let port = process.env.PORT || 3000
+let port = process.env.PORT
 app.listen(port, () => {
     console.log(`Server deployed on port ${port}`)
 })
