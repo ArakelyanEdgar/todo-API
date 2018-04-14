@@ -99,6 +99,7 @@ app.patch('/todos/:id', (req, res) => {
     else if (body.completed)
         body.completedAt = Date.now()
 
+    //updating todo and promise success passes the updated todo b/c of new:true
     Todo.findByIdAndUpdate(id, body, {new: true}).then(todo => {
         if (todo === null){
             res.status(404).send(`todo with id: ${id} does not exist`)
