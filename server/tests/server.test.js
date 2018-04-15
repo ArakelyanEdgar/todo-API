@@ -3,34 +3,21 @@ const request = require('supertest')
 const app = require('../server').app
 const Todo = require('../models/todo').Todo
 const User = require('../models/user').User
-
-//creating dummy todos for testing GET /todos
-const todos = [{
-    text: 'First test todo'
-},{
-    text: 'Second test todo'
-}]
+const {todos, users, createTodos, createUsers} = require('./seed/seed')
 
 //deleting all docs from Todo before running
 beforeEach((done) => {
-    Todo.remove({}).then(() => {
-        return Todo.insertMany(todos, (err, docs) => {
-            if (err){
-                return done(err)
-            }
+    createTodos(todos)
+        .then(() => {
+            return createUsers(users)
         })
-    }).then(() => {
-        done()
-    }).catch((err) => {
-        done(err)
-    })
+        .then(() => done())
+        .catch(done => done(err))
 })
 
 describe('POST /todos', () => {
-    
 
     let text = 'Test todo'
-
     //sending a post request to app to save doc. 
     //If the db doesn't have exactly one doc with the ascribed text then there is an error
     //if db has a single doc then it's text field must be the doc's text
@@ -100,7 +87,7 @@ describe('GET /todos', () => {
                     return
                 }
                 //checking only dummy todos exist
-                Todo.find().then((todos) => {
+                Todo.find().then(todos => {
                     expect(todos[0].text).toBe('First test todo')
                     expect(todos[1].text).toBe('Second test todo')
                     done()
@@ -242,7 +229,7 @@ describe('PATCH /todos/:id', () => {
             })
     })
 
-    it('Should respond with 400 status for id that is in todo', (done) => {
+    it('Should respond with 200 status for id that is in todo', (done) => {
         Todo.findOne().then(todo => {
             let id = todo._id
             let text = 'Updated text test'
