@@ -4,12 +4,17 @@ const express = require('express')
 const bodyParser = require('body-parser')
 const _ = require('lodash')
 
+//MONGOOSE/MONGODB related libraries
 const mongoose = require('./db/mongoose.js').mongoose
 const User = require('./models/user').User
 const Todo = require('./models/todo').Todo
 const ObjectID = require('mongodb').ObjectID
 
 const app = express()
+
+//MIDDLEWARE LIBRARIES
+const authenticate = require('./middleware/authenticate').authenticate
+
 
 //parse json requests
 app.use(bodyParser.json())
@@ -133,7 +138,17 @@ app.post('/users', (req, res) => {
     })
 })
 
+app.use(authenticate)
 
+//GET /users/me | accesses signed in user's private route
+app.get('/users/me', (req, res) => {
+    if (!req.user){
+        res.status(401).send()
+        return
+    }
+
+    res.status(200).send(req.user)
+})
 
 let port = process.env.PORT
 app.listen(port, () => {

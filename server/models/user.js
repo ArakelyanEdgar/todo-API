@@ -54,6 +54,27 @@ schemaUser.methods.generateAuthToken = function(){
     })
 }
 
+//finds a user with the id of the decrypted token
+schemaUser.statics.findByToken = function(token){
+    let decodedUser = ""
+
+    //jwt.verify throws err if not verified
+    return new Promise((resolve, reject) => {
+        try {
+            decodedUser = jwt.verify(token, 'secret')
+            resolve(
+                this.findOne({
+                    _id: decodedUser._id,
+                    'tokens.token': token,
+                    'tokens.access': 'auth'
+                })
+            )
+        } catch(err){
+            reject(err)
+        }
+    })
+}
+
 let User = mongoose.model('User', schemaUser)
 
 module.exports = {
