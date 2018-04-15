@@ -1,6 +1,7 @@
 const mongoose = require('mongoose')
 let Validator = require('validator')
 const jwt = require('jsonwebtoken')
+const bcrypt = require('bcryptjs')
 
 let schemaUser = new mongoose.Schema({
     email: {
@@ -47,10 +48,31 @@ schemaUser.methods.generateAuthToken = function(){
         token
     })
 
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
         this.save().then(() => {
             resolve(token)
         })
+    })
+}
+
+//hashes users password and saves it to its instance
+schemaUser.methods.hashPassword = function(){
+
+    let salt = bcrypt.genSaltSync()
+    let hash = bcrypt.hashSync(this.password, salt)
+    this.password = hash
+
+     return new Promise(resolve => {
+         this.save().then(user => {
+             resolve(user)
+         })
+     })
+}
+
+//compares user hash to password in order to determine if it is valid. Returns TRUE or FALSE
+schemaUser.methods.compareHashToPassword = function(password){
+    bcrypt.compare(password, this.password, (err, res) => {
+        return res
     })
 }
 

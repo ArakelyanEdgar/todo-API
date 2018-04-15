@@ -123,14 +123,16 @@ app.patch('/todos/:id', (req, res) => {
 //POST /users | creates a user
 app.post('/users', (req, res) => {
     let body = _.pick(req.body, 'email', 'password')
+    
     let user = new User(body)
-
-    user.save().then(user => {
+    
+    //hashes the user's password and saves it to document and then saves the auth token and if there is no error
+    //then it will send a 200
+    user.hashPassword().then(user => {
         return user.generateAuthToken()
         // res.status(200).send(doc)
     }).then(token => {
-        //x-auth will allow us to verify for GET and PATCH easily
-        //note we do not want to send password back to user
+        //x-auth will allow us to verify for GET and PATCH, and note we do not want to res.send the password
         res.header('x-auth', token).status(200).send(_.pick(user, '_id', 'email'))
     })
     .catch(err => {
