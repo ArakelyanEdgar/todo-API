@@ -32,6 +32,30 @@ let schemaUser = new mongoose.Schema({
     }]
 })
 
+
+//MONGOOSE MIDDLEWARE called before save that will hash the password. 
+//Thus the password will never be stored in plain text
+schemaUser.pre('save', function(next) {
+    let user = this;
+
+    // only hash the password if it has been modified (or is new)
+    if (!user.isModified('password')) return next();
+
+    // generate a salt
+    bcrypt.genSalt(10, function(err, salt) {
+        if (err) return next(err);
+
+        // hash the password along with our new salt
+        bcrypt.hash(user.password, salt, function(err, hash) {
+            if (err) return next(err);
+
+            // override the cleartext password with the hashed one
+            user.password = hash;
+            next();
+        });
+    });
+});
+
 //generate a hashed and salted token
 //NOTE: .methods is an instance method, thus "this" is a user and not a static method
 //NOTE: we are using es5 function() syntax since () => {} doesn't bind "this"
@@ -53,20 +77,6 @@ schemaUser.methods.generateAuthToken = function(){
             resolve(token)
         })
     })
-}
-
-//hashes users password and saves it to its instance
-schemaUser.methods.hashPassword = function(){
-
-    let salt = bcrypt.genSaltSync()
-    let hash = bcrypt.hashSync(this.password, salt)
-    this.password = hash
-
-     return new Promise(resolve => {
-         this.save().then(user => {
-             resolve(user)
-         })
-     })
 }
 
 //compares user hash to password in order to determine if it is valid. Returns TRUE or FALSE

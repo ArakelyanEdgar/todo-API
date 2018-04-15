@@ -128,7 +128,7 @@ app.post('/users', (req, res) => {
     
     //hashes the user's password and saves it to document and then saves the auth token and if there is no error
     //then it will send a 200
-    user.hashPassword().then(user => {
+    user.save().then(user => {
         return user.generateAuthToken()
         // res.status(200).send(doc)
     }).then(token => {
