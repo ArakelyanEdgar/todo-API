@@ -278,6 +278,9 @@ describe('POST /users', () => {
             .post('/users')
             .send(user)
             .expect(200)
+            .expect((res) => {
+                expect(res.header['x-auth']).toExist()
+            })
             .end((err, res) => {
                 if (err){
                     done(err)
