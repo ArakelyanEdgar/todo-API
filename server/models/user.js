@@ -80,9 +80,16 @@ schemaUser.methods.generateAuthToken = function(){
 }
 
 //compares user hash to password in order to determine if it is valid. Returns TRUE or FALSE
-schemaUser.methods.compareHashToPassword = function(password){
-    bcrypt.compare(password, this.password, (err, res) => {
-        return res
+schemaUser.methods.verifyPassword = function(password){
+    let user = this
+
+    return new Promise((resolve, reject) => {
+        bcrypt.compare(password, user.password, function(err, res){
+            if (res)
+                resolve(user)
+            else
+                reject()
+        })
     })
 }
 

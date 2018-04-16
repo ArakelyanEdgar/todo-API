@@ -140,6 +140,27 @@ app.post('/users', (req, res) => {
     })
 })
 
+//POST /users/login | 'logs in' by creating an x-auth cookie
+app.post('/users/login', (req, res) => {
+    let body = _.pick(req.body, 'email', 'password')
+
+    User.findOne({
+        email: body.email
+    }).then(user => {
+        //we have to compare the hashed password stored in user with password
+        user.verifyPassword(body.password).then((user) => {
+            //user is verified so we must set a cookie x-auth to user for persistent authentication
+            res.cookie('x-auth', user.tokens[0].token)
+            res.status(200).send()
+        }).catch(() => {
+            res.status(401).send()
+        })
+    })
+    .catch(err => {
+        res.status(404).send(err)
+    })
+})
+
 app.use(authenticate)
 
 //GET /users/me | accesses signed in user's private route
