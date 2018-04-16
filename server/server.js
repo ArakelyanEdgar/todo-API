@@ -3,6 +3,7 @@ require('./config/config')
 const express = require('express')
 const bodyParser = require('body-parser')
 const _ = require('lodash')
+const cookieParser = require('cookie-parser')
 
 //MONGOOSE/MONGODB related libraries
 const mongoose = require('./db/mongoose.js').mongoose
@@ -16,8 +17,9 @@ const app = express()
 const authenticate = require('./middleware/authenticate').authenticate
 
 
-//parse json requests
+//EXPRESS MIDDLEWARE
 app.use(bodyParser.json())
+app.use(cookieParser())
 
 //POST /todos | saves todo in body to todos db
 app.post('/todos', (req, res) => {
@@ -133,7 +135,8 @@ app.post('/users', (req, res) => {
         // res.status(200).send(doc)
     }).then(token => {
         //x-auth will allow us to verify for GET and PATCH, and note we do not want to res.send the password
-        res.header('x-auth', token).status(200).send(_.pick(user, '_id', 'email'))
+        res.clearCookie('x-auth')
+        res.cookie('x-auth', token).header('x-auth', token).status(200).send(_.pick(user, '_id', 'email'))
     })
     .catch(err => {
         res.status(400).send(err)
@@ -161,16 +164,29 @@ app.post('/users/login', (req, res) => {
     })
 })
 
-app.use(authenticate)
+
 
 //GET /users/me | accesses signed in user's private route
-app.get('/users/me', (req, res) => {
+app.get('/users/me', authenticate, (req, res) => {
+    if (!req.user){
+        res.status(401).send()
+        return
+    }
+    res.status(200).send(req.user)
+})
+
+//DELETE /users/me/token | removes cookie 
+app.delete('/users/me/token', authenticate, (req, res) => {
+    console.log(req.user)
+
     if (!req.user){
         res.status(401).send()
         return
     }
 
-    res.status(200).send(req.user)
+    //clear cookie
+    res.clearCookie('x-auth')
+    res.status(200).send()
 })
 
 let port = process.env.PORT

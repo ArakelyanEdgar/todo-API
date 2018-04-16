@@ -2,8 +2,7 @@ const User = require('../models/user').User
 
 //middleware that authenticates user and assigns user to req.user
 let authenticate = (req, res, next) => {
-    let token = req.header('x-auth')
-
+    let token = req.cookies['x-auth']
     User.findByToken(token).then(user => {
         if (user === null){
             next()

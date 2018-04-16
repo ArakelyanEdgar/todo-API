@@ -314,6 +314,7 @@ describe('GET /users/me', () => {
         request(app)
             .get('/users/me')
             .set('x-auth', token)
+            .set('Cookie', [`x-auth=${token}`])
             .expect(200)
             .end((err, res) => {
                 if (err){
