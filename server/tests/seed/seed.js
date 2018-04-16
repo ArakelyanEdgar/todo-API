@@ -18,7 +18,7 @@ const users = [{
     _id: useroneid,
     email: 'userone@gmail.com',
     password: 'abracadabra1',
-    token: [{
+    tokens: [{
         access: 'auth',
         token: jwt.sign({
             _id: useroneid.toHexString(),

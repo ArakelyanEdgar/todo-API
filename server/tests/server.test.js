@@ -4,6 +4,8 @@ const app = require('../server').app
 const Todo = require('../models/todo').Todo
 const User = require('../models/user').User
 const {todos, users, createTodos, createUsers} = require('./seed/seed')
+const {ObjectID} = require('mongodb')
+const jwt = require('jsonwebtoken')
 
 //deleting all docs from Todo before running
 beforeEach((done) => {
@@ -16,8 +18,8 @@ beforeEach((done) => {
 })
 
 describe('POST /todos', () => {
-
     let text = 'Test todo'
+
     //sending a post request to app to save doc. 
     //If the db doesn't have exactly one doc with the ascribed text then there is an error
     //if db has a single doc then it's text field must be the doc's text
@@ -252,5 +254,71 @@ describe('PATCH /todos/:id', () => {
         }).catch(err => {
             done(err)
         })
+    })
+})
+
+describe('POST /users', () => {
+
+    it('Should return STATUS 200 for user posting', (done) => {
+        let userID = new ObjectID()
+        let user = {
+            _id: userID,
+            email: 'userPostTest@gmail.com',
+            password: 'passwordtest',
+            tokens: [{
+                access: 'auth',
+                token: jwt.sign({
+                    _id: userID.toHexString(),
+                    access: 'auth'
+                }, 'secret').toString()
+            }]
+        }
+
+        request(app)
+            .post('/users')
+            .send(user)
+            .expect(200)
+            .end((err, res) => {
+                if (err){
+                    done(err)
+                    return
+                }
+
+                done()
+            })
+    })
+})
+
+describe('GET /users/me', () => {
+
+    it('Should return STATUS 401 for user without auth', (done) => {
+        request(app)
+            .get('/users/me')
+            .expect(401)
+            .end((err,res) => {
+                if (err){
+                    done(err)
+                    return
+                }
+
+                done()
+            })
+    })
+
+    //user is authorized because req.header is set to auth token
+    it('Should return STATUS 200 for user with auth', (done) => {
+        let token = users[0].tokens[0].token
+        request(app)
+            .get('/users/me')
+            .set('x-auth', token)
+            .expect(200)
+            .end((err, res) => {
+                if (err){
+                    done(err)
+                    return
+                }
+
+                done()
+            })
     })
 })
