@@ -361,7 +361,7 @@ describe('POST /users/login', () => {
     
                     done()
                 })
-        })
+        }).catch(err => done(err))
     })
 
     it('should return STATUS 200 for user that is authorized with valid password', (done) => {
