@@ -325,3 +325,70 @@ describe('GET /users/me', () => {
             })
     })
 })
+
+describe('POST /users/login', () => {
+    it('should return STATUS 404 for user that does not exist', (done) => {
+        request(app)
+            .post('/users/login')
+            .send({
+                email: 'bobfromidaho@gmail.com'
+            })
+            .expect(404)
+            .end((err, res) => {
+                if (err){
+                    done(err)
+                    return
+                }
+
+                done()
+            })
+    })
+
+    it('Should return STATUS 401 for user that is unauthorized with invalid password', (done) => {
+        User.findOne().then(user => {
+            let email = user.email
+            let password = 'notrealpassword'
+
+            request(app)
+                .post('/users/login')
+                .send({email, password})
+                .expect(401)
+                .end((err, res) => {
+                    if (err){
+                        done(err)
+                        return
+                    }
+    
+                    done()
+                })
+        })
+    })
+
+    it('should return STATUS 200 for user that is authorized with valid password', (done) => {
+        let user = {
+            email: 'testemail@gmail.com',
+            password: 'password'
+        }
+
+        request(app)
+            .post('/users')
+            .send(user)
+            .end((err, res) => {
+                request(app)
+                    .post('/users/login')
+                    .send({
+                        email: 'testemail@gmail.com',
+                        password: 'password'
+                    })
+                    .expect(200)
+                    .end((err, res) => {
+                        if (err){
+                            done(err)
+                            return
+                        }
+
+                        done()
+                    })
+            })
+    })
+})
