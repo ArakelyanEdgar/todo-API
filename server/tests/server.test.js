@@ -278,9 +278,6 @@ describe('POST /users', () => {
             .post('/users')
             .send(user)
             .expect(200)
-            .expect((res) => {
-                expect(res.header['x-auth']).toExist()
-            })
             .end((err, res) => {
                 if (err){
                     done(err)
@@ -390,6 +387,39 @@ describe('POST /users/login', () => {
 
                         done()
                     })
+            })
+    })
+})
+
+describe('DELETE /users/me/logout', () => {
+    //will always be 401 since we are not setting cookies
+    it('Should return STATUS 401 for unauthorized user', (done) => {
+        request(app)
+            .delete('/users/me/logout')
+            .expect(401)
+            .end((err, res) => {
+                if (err){
+                    done(err)
+                    return
+                }
+
+                done()
+            })
+    })
+
+    it('Should return STATUS 200 for authorized user', (done) => {
+        let token = users[0].tokens[0].token
+        request(app)
+            .delete('/users/me/logout')
+            .set('Cookie', [`x-auth=${token}`])
+            .expect(200)
+            .end((err, res) => {
+                if (err){
+                    done(err)
+                    return
+                }
+
+                done()
             })
     })
 })

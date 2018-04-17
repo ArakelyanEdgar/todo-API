@@ -136,7 +136,7 @@ app.post('/users', (req, res) => {
     }).then(token => {
         //x-auth will allow us to verify for GET and PATCH, and note we do not want to res.send the password
         res.clearCookie('x-auth')
-        res.cookie('x-auth', token).header('x-auth', token).status(200).send(_.pick(user, '_id', 'email'))
+        res.cookie('x-auth', token).status(200).send(_.pick(user, '_id', 'email'))
     })
     .catch(err => {
         res.status(400).send(err)
@@ -176,7 +176,7 @@ app.get('/users/me', authenticate, (req, res) => {
 })
 
 //DELETE /users/me/token | removes cookie 
-app.delete('/users/me/token', authenticate, (req, res) => {
+app.delete('/users/me/logout', authenticate, (req, res) => {
     console.log(req.user)
 
     if (!req.user){
