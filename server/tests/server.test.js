@@ -75,6 +75,23 @@ describe('POST /todos', () => {
 
             })
     })
+
+    it('Should return 401 for unauthorized user(not logged in)', (done) => {
+        request(app)
+            .post('/todos')
+            .send({
+                text: 'testing',
+                owner: users[0]._id
+            })
+            .expect(401)
+            .end((err, res) => {
+                if (err){
+                    done(err)
+                    return
+                }
+                done()
+            })
+    })
 })
 
 //testing GET, should only return 2 docs whose text are equivalent to the dummy todos
