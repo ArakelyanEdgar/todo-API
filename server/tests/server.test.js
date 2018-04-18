@@ -23,12 +23,14 @@ describe('POST /todos', () => {
     //sending a post request to app to save doc. 
     //If the db doesn't have exactly one doc with the ascribed text then there is an error
     //if db has a single doc then it's text field must be the doc's text
-    it('Responds with saved todo', (done) => {
+    it('Returns STATUS 200 for saved todo', (done) => {
+        let user = users[0]   
         request(app)
             .post('/todos')
+            .set('Cookie', [`x-auth=${user.tokens[0].token}`])
             .send({
                 text,
-                owner: new ObjectID()
+                owner: user._id
             })
             .expect(200)
             .expect((res) => {
@@ -50,9 +52,11 @@ describe('POST /todos', () => {
     })
 
     //sending invalid data and testing if no doc is stored in todos db which is the desired behavior, not there are 2 dummy todos
-    it('Should not create todo with invalid body data', (done) => {
+    it('Should return 400 for empty todo', (done) => {
+        let user = users[0] 
         request(app)
             .post('/todos')
+            .set('Cookie', [`x-auth=${user.tokens[0].token}`])
             .send({
             })
             .expect(400)

@@ -14,7 +14,7 @@ const ObjectID = require('mongodb').ObjectID
 const app = express()
 
 //MIDDLEWARE LIBRARIES
-const authenticate = require('./middleware/authenticate').authenticate
+const {authenticate} = require('./middleware/authenticate')
 
 
 //EXPRESS MIDDLEWARE
@@ -22,10 +22,16 @@ app.use(bodyParser.json())
 app.use(cookieParser())
 
 //POST /todos | saves todo in body to todos db
-app.post('/todos', (req, res) => {
+app.post('/todos', authenticate,  (req, res) => {
+
+    if (!req.user){
+        res.status(401).send()
+        return
+    }
+
     let todo = new Todo({
         text: req.body.text,
-        owner: req.body.owner
+        owner: req.user._id
     })
     todo.save().then((doc) => {
         console.log(doc)
