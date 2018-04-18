@@ -72,8 +72,14 @@ app.get('/todos/:id', (req, res) => {
     })
 })
 
-//DELETE /todos/:id | deletes a todo by its id
-app.delete('/todos/:id', (req, res) => {
+//DELETE /todos/:id | deletes a todo by its id if user is authenticated
+app.delete('/todos/:id', authenticate, (req, res) => {
+    //if user isn't authenticated send forbidden status
+    if (!req.user){
+        res.status(401).send()
+        return
+    }
+
     let id = req.params.id
     //validate id
     if (!ObjectID.isValid(id)){
@@ -81,14 +87,25 @@ app.delete('/todos/:id', (req, res) => {
         return
     }
 
-    Todo.findByIdAndRemove(id).then((todo) => {
+    //find the todo and check if user is authorized to remove it, if so remove it
+    Todo.findById(id).then(todo => {
         //if todo === null implies todo didn't exist in db
         if (todo === null){
             res.status(404).send(`todo with id: ${id} does not exist`)
             return
         }
-
-        res.status(200).send(`todo ${todo} has been deleted`)
+        //todo.owner must be user
+        if (todo.owner.toHexString() != req.user._id.toHexString()){
+            console.log(req.user)
+            res.status(401).send()
+            return
+        }
+        
+        todo.remove().then(todo => {
+            res.status(200).send(`todo ${todo} has been deleted`)
+        }).catch(err => {
+            res.status(400).send()
+        })
     }).catch(err => {
         res.status(400).send('Error deleting todo')
     })
@@ -129,7 +146,7 @@ app.patch('/todos/:id', (req, res) => {
 
 })
 
-//POST /users | creates a user
+//POST /users | creates a user if user is authenticated
 app.post('/users', (req, res) => {
     let body = _.pick(req.body, 'email', 'password')
     
