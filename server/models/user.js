@@ -20,6 +20,11 @@ let schemaUser = new mongoose.Schema({
         required: true,
         minlength: 8
     },
+    description: {
+        type: String,
+        minlength: 4,
+        default: "Describe yourself ;)"
+    },
     tokens: [{
         access: {
             type: String,

@@ -177,8 +177,6 @@ app.get('/users/me', authenticate, (req, res) => {
 
 //DELETE /users/me/token | removes cookie 
 app.delete('/users/me/logout', authenticate, (req, res) => {
-    console.log(req.user)
-
     if (!req.user){
         res.status(401).send()
         return
@@ -188,6 +186,31 @@ app.delete('/users/me/logout', authenticate, (req, res) => {
     res.clearCookie('x-auth')
     res.status(200).send()
 })
+
+//PATCH /users/me/update | allows users to update their information
+app.patch('/users/me/update', authenticate, (req, res) => {
+    //check if user is authorized
+    if (!req.user){
+        res.status(401).send()
+        return
+    }
+
+    let body = _.pick(req.body, 'description')
+    //if description doesn't exist we should send bad request error
+    if(!body.description){
+        res.status(400).send()
+    }
+
+
+    let id = req.user._id
+    User.findByIdAndUpdate(id, body, {new: true}).then((user) => {
+        //note that we do not have to check if user === null because user is authorized
+        res.status(200).send(user)
+    }).catch(err => {
+        res.status(400).send(err)
+    })
+})
+
 
 let port = process.env.PORT
 app.listen(port, () => {
