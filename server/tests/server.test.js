@@ -27,7 +27,8 @@ describe('POST /todos', () => {
         request(app)
             .post('/todos')
             .send({
-                text
+                text,
+                owner: new ObjectID()
             })
             .expect(200)
             .expect((res) => {

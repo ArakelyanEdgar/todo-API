@@ -14,6 +14,10 @@ let schemaTodo  = new mongoose.Schema({
     completedAt: {
         type: Date,
         default: Date.now
+    },
+    owner: {
+        type: mongoose.Schema.Types.ObjectId,
+        required: true
     }
 })
 

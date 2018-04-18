@@ -4,12 +4,6 @@ const jwt = require('jsonwebtoken')
 const {ObjectID} = require('mongodb')
 //SEED.js will create the seed data for testing
 
-//creating dummy todos for testing 
-const todos = [{
-    text: 'First test todo'
-},{
-    text: 'Second test todo'
-}]
 
 //creating dummy users for testing, where userone has an auth token and user two doesnt
 let useroneid = new ObjectID()
@@ -29,6 +23,15 @@ const users = [{
     _id: usertwoid,
     email: 'usertwo@yahoo.com',
     password: 'abracadabra2',
+}]
+
+//creating dummy todos for testing 
+const todos = [{
+    text: 'First test todo',
+    owner: useroneid
+},{
+    text: 'Second test todo',
+    owner: usertwoid
 }]
 
 //resetting test db for todo collection and then storing dummy todos

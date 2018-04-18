@@ -24,7 +24,8 @@ app.use(cookieParser())
 //POST /todos | saves todo in body to todos db
 app.post('/todos', (req, res) => {
     let todo = new Todo({
-        text: req.body.text
+        text: req.body.text,
+        owner: req.body.owner
     })
     todo.save().then((doc) => {
         console.log(doc)
