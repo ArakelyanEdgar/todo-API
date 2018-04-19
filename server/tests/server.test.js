@@ -176,9 +176,26 @@ describe('GET /todos/:id', () => {
 })
 
 describe('DELETE /todos/:id', () => {
+
+    it('Should return STATUS 401 for unauthorized user', (done) => {
+        let id = users[0]._id.toHexString()
+        request(app)
+            .delete(`/todos/${id}`)
+            .send({})
+            .expect(401)
+            .end((err, res) => {
+                if (err){
+                    done(err)
+                    return
+                }
+                done()
+            })
+    })
+
     it('Should respond with status 404 for invalid id', (done) => {
         request(app)
             .delete('/todos/1')
+            .set('Cookie', [`x-auth=${users[0].tokens[0].token}`])
             .expect(404)
             .end((err, res) => {
                 if (err){
@@ -193,6 +210,7 @@ describe('DELETE /todos/:id', () => {
     it('Should respond with status 404 for id that does not exist in db', (done) => {
         request(app)
             .delete('/todos/5ad01e3843b4bb0d0c9de6c9')
+            .set('Cookie', [`x-auth=${users[0].tokens[0].token}`])
             .expect(404)
             .end((err, res) => {
                 if (err){
@@ -205,19 +223,26 @@ describe('DELETE /todos/:id', () => {
     })
 
     it('Should respond with status 200 for deleting id', (done) => {
-        Todo.findOne().then(doc => {
-            let id = doc._id
-            request(app)
-                .delete(`/todos/${id}`)
-                .expect(200)
-                .end((err, res) => {
-                    if (err){
-                        done(err)
-                        return
-                    }
-    
-                    done()
-                })
+        Todo.findOne().then(todo => {
+            let todo_id = todo._id
+            User.findById(todo.owner).then(user => {
+                let token = user.tokens[0].token
+
+                request(app)
+                    .delete(`/todos/${todo_id}`)
+                    .set('Cookie', [`x-auth=${token}`])
+                    .expect(200)
+                    .end((err, res) => {
+                        if (err){
+                            done(err)
+                            return
+                        }
+        
+                        done()
+                    })
+            }).catch(err => {
+                done(err)
+            })
         }).catch(err => {
             done(err)
         })
