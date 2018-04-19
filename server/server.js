@@ -96,7 +96,6 @@ app.delete('/todos/:id', authenticate, (req, res) => {
         }
         //todo.owner must be user
         if (todo.owner.toHexString() != req.user._id.toHexString()){
-            console.log(req.user)
             res.status(401).send()
             return
         }
@@ -111,12 +110,17 @@ app.delete('/todos/:id', authenticate, (req, res) => {
     })
 })
 
-//PATCH /todos/:id | updates a todo by its id
-app.patch('/todos/:id', (req, res) => {
-    let id = req.params.id
+//PATCH /todos/:id | updates a todo by its id by authorized users only
+app.patch('/todos/:id', authenticate, (req, res) => {
+    if (!req.user){
+        res.status(401).send()
+        return
+    }
+
+    let todo_id = req.params.id
 
     //determine if id is valid
-    if (!ObjectID.isValid(id)){
+    if (!ObjectID.isValid(todo_id)){
         res.status(404).send('INVALID id')
         return
     }
@@ -133,17 +137,28 @@ app.patch('/todos/:id', (req, res) => {
         body.completedAt = Date.now()
 
     //updating todo and promise success passes the updated todo b/c of new:true
-    Todo.findByIdAndUpdate(id, body, {new: true}).then(todo => {
+    Todo.findById(todo_id).then(todo => {
+        //if todo doesn't exist then it will be null
         if (todo === null){
             res.status(404).send(`todo with id: ${id} does not exist`)
             return
         }
 
-        res.status(200).send(`todo updated to: ${todo}`)
+        //user must be owner of the todo
+        if (todo.owner.toHexString() !== req.user._id.toHexString()){
+            res.status(401).send()
+            return
+        }
+
+        //updaing todo
+        todo.update(body).then(todo => {
+            res.status(200).send()
+        }).catch(err => {
+            res.status(400).send(err)
+        })
     }).catch(err => {
         res.status(400).send(err)
     })
-
 })
 
 //POST /users | creates a user if user is authenticated
