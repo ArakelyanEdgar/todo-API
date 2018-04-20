@@ -317,7 +317,7 @@ describe('POST /users', () => {
                 token: jwt.sign({
                     _id: userID.toHexString(),
                     access: 'auth'
-                }, 'secret').toString()
+                }, process.env.JWT_SECRET).toString()
             }]
         }
 

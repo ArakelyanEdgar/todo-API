@@ -69,7 +69,7 @@ schemaUser.methods.generateAuthToken = function(){
     let token = jwt.sign({
         _id: this._id.toHexString(),
         access
-    }, 'secret').toString()
+    }, process.env.JWT_SECRET).toString()
 
 
     this.tokens.push({
@@ -105,7 +105,7 @@ schemaUser.statics.findByToken = function(token){
     //jwt.verify throws err if not verified
     return new Promise((resolve, reject) => {
         try {
-            decodedUser = jwt.verify(token, 'secret')
+            decodedUser = jwt.verify(token, process.env.JWT_SECRET)
             resolve(
                 this.findOne({
                     _id: decodedUser._id,
