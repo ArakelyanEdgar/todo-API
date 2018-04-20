@@ -14,3 +14,8 @@ if (env === 'development' || env === 'test'){
     })
 }
 
+//for production database, note that mongodb_uri and port is already set by heroku
+if (env === 'production'){
+    process.env.JWT_SECRET = config.production.JWT_SECRET
+}
+
