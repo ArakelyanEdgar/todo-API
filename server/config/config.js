@@ -3,11 +3,13 @@
 //note that test is activated on the test script in npm test seen in package.json
 let env = process.env.NODE_ENV || 'development'
 
-if (env === 'development'){
-    process.env.PORT = 3000
-    process.env.MONGODB_URI = 'mongodb://localhost:27017/TodoApp'
+if (env === 'development' || env === 'test'){
+    //in node require('xxxx.json') files automatically parses them
+    let config = require('./config.json')
+    console.log(config)
+    let envConfig = config[env]
+    Object.keys(envConfig).forEach((key) => {
+        process.env[key] = envConfig[key]
+    })
 }
-else if (env === 'test'){
-    process.env.PORT = 3000
-    process.env.MONGODB_URI = 'mongodb://localhost:27017/TodoAppTest'
-}
+
