@@ -253,6 +253,7 @@ describe('PATCH /todos/:id', () => {
     it('Should respond with 404 status for invalid id', (done) => {
         request(app)
             .patch('/todos/1')
+            .set('Cookie', [`x-auth=${users[0].tokens[0].token}`])
             .expect(404)
             .end((err, res) => {
                 if (err){
@@ -264,10 +265,15 @@ describe('PATCH /todos/:id', () => {
             })
     })
 
-    it('Should respond with 404 status for id that is not in todo db', (done) => {
+    it('Should respond with 400 status for id that is not in todo db', (done) => {
         request(app)
             .patch('/todos/00000000bcf86cd799439011')
-            .expect(404)
+            .set('Cookie', [`x-auth=${users[0].tokens[0].token}`])
+            .send({
+                body: "testBody",
+                completed: true
+            })
+            .expect(400)
             .end((err, res) => {
                 if (err){
                     done(err)
@@ -281,25 +287,30 @@ describe('PATCH /todos/:id', () => {
     it('Should respond with 200 status for id that is in todo', (done) => {
         Todo.findOne().then(todo => {
             let id = todo._id
+            let user_id = todo.owner
             let text = 'Updated text test'
             let completed = true
-            request(app)
-            .patch(`/todos/${id}`)
-            .send({
-                text,
-                completed
-            })
-            .expect(200)
-            .end((err, res) => {
-                if (err){
-                    done(err)
-                    return
-                }
 
-                done()
-            })
-        }).catch(err => {
-            done(err)
+            User.findById(user_id).then(user => {
+                request(app)
+                    .patch(`/todos/${id}`)
+                    .set('Cookie', [`x-auth=${user.tokens[0].token}`])
+                    .send({
+                        text,
+                        completed
+                    })
+                    .expect(200)
+                    .end((err, res) => {
+                        if (err){
+                            done(err)
+                            return
+                        }
+        
+                        done()
+                    })
+                }).catch(err => {
+                    done(err)
+                })
         })
     })
 })

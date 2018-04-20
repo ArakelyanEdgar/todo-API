@@ -139,8 +139,8 @@ app.patch('/todos/:id', authenticate, (req, res) => {
     //updating todo and promise success passes the updated todo b/c of new:true
     Todo.findById(todo_id).then(todo => {
         //if todo doesn't exist then it will be null
-        if (todo === null){
-            res.status(404).send(`todo with id: ${id} does not exist`)
+        if (!todo){
+            res.status(400).send(`todo with id: ${id} does not exist`)
             return
         }
 
