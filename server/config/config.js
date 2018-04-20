@@ -3,11 +3,10 @@
 //note that test is activated on the test script in npm test seen in package.json
 let env = process.env.NODE_ENV || 'development'
 
-//requiring json files parses them automatically
-let config = require('./config.json')
-
 //for local databases
 if (env === 'development' || env === 'test'){
+    //requiring json files parses them automatically
+    let config = require('./config.json')
     let envConfig = config[env]
     Object.keys(envConfig).forEach((key) => {
         process.env[key] = envConfig[key]
