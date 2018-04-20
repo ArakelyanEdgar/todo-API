@@ -190,10 +190,9 @@ app.post('/users/login', (req, res) => {
         email: body.email
     }).then(user => {
         //we have to compare the hashed password stored in user with password
-        user.verifyPassword(body.password).then((user) => {
+        user.verifyPassword(body.password).then(user => {
             //user is verified so we must set a cookie x-auth to user for persistent authentication
-            res.cookie('x-auth', user.tokens[0].token)
-            res.status(200).send()
+            res.cookie('x-auth', user.tokens[0].token).status(200).send()
         }).catch(() => {
             res.status(401).send()
         })
