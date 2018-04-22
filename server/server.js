@@ -24,11 +24,6 @@ app.use(cookieParser())
 //POST /todos | saves todo in body to todos db
 app.post('/todos', authenticate,  (req, res) => {
 
-    if (!req.user){
-        res.status(401).send()
-        return
-    }
-
     let todo = new Todo({
         text: req.body.text,
         owner: req.user._id
@@ -45,11 +40,6 @@ app.post('/todos', authenticate,  (req, res) => {
 //GET /todos | returns all todos for the authenticated user
 app.get('/todos',authenticate,(req, res) => {
 
-    if (!req.user){
-        res.status(401).send()
-        return
-    }
-
     Todo.find({
         owner: req.user._id
     }).then(todos => {
@@ -57,7 +47,6 @@ app.get('/todos',authenticate,(req, res) => {
             res.status(200).send('Sorry, you have no todos!')
             return
         }
-        
         res.status(200).send(todos)
     }).catch(err => res.status(400).send(err))
 })
@@ -84,12 +73,6 @@ app.get('/todos/:id', (req, res) => {
 
 //DELETE /todos/:id | deletes a todo by its id if user is authenticated
 app.delete('/todos/:id', authenticate, (req, res) => {
-    //if user isn't authenticated send forbidden status
-    if (!req.user){
-        res.status(401).send()
-        return
-    }
-
     let id = req.params.id
     //validate id
     if (!ObjectID.isValid(id)){
@@ -122,11 +105,6 @@ app.delete('/todos/:id', authenticate, (req, res) => {
 
 //PATCH /todos/:id | updates a todo by its id by authorized users only
 app.patch('/todos/:id', authenticate, (req, res) => {
-    if (!req.user){
-        res.status(401).send()
-        return
-    }
-
     let todo_id = req.params.id
 
     //determine if id is valid
@@ -174,7 +152,6 @@ app.patch('/todos/:id', authenticate, (req, res) => {
 //POST /users | creates a user if user is authenticated
 app.post('/users', (req, res) => {
     let body = _.pick(req.body, 'email', 'password')
-    
     let user = new User(body)
     
     //hashes the user's password and saves it to document and then saves the auth token and if there is no error
@@ -216,20 +193,11 @@ app.post('/users/login', (req, res) => {
 
 //GET /users/me | accesses signed in user's private route
 app.get('/users/me', authenticate, (req, res) => {
-    if (!req.user){
-        res.status(401).send()
-        return
-    }
     res.status(200).send(req.user)
 })
 
 //DELETE /users/me/token | removes cookie 
 app.delete('/users/me/logout', authenticate, (req, res) => {
-    if (!req.user){
-        res.status(401).send()
-        return
-    }
-
     //clear cookie
     res.clearCookie('x-auth')
     res.status(200).send()
@@ -237,18 +205,11 @@ app.delete('/users/me/logout', authenticate, (req, res) => {
 
 //PATCH /users/me/update | allows users to update their information
 app.patch('/users/me/update', authenticate, (req, res) => {
-    //check if user is authorized
-    if (!req.user){
-        res.status(401).send()
-        return
-    }
-
     let body = _.pick(req.body, 'description')
     //if description doesn't exist we should send bad request error
     if(!body.description){
         res.status(400).send()
     }
-
 
     let id = req.user._id
     User.findByIdAndUpdate(id, body, {new: true}).then((user) => {
