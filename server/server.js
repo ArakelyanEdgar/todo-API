@@ -22,24 +22,22 @@ app.use(bodyParser.json())
 app.use(cookieParser())
 
 //POST /todos | saves todo in body to todos db
-app.post('/todos', authenticate,  (req, res) => {
-
+app.post('/todos', authenticate,  async (req, res) => {
     let todo = new Todo({
         text: req.body.text,
         owner: req.user._id
     })
-    todo.save().then((doc) => {
-        console.log(doc)
-        res.status(200).send(doc)
-    }, (err) => {
+
+    try{
+        todo = await todo.save()
+        res.status(200).send(todo)
+    }catch(err){
         res.status(400).send(err)
-        console.log(err)
-    })
+    }
 })
 
 //GET /todos | returns all todos for the authenticated user
 app.get('/todos',authenticate, async (req, res) => {
-
     try{
         let todos = await Todo.find({owner:req.user._id})
         if(todos.length === 0){
@@ -47,33 +45,34 @@ app.get('/todos',authenticate, async (req, res) => {
             return
         }
         res.status(200).send(todos)
-    } catch(err) {
+    }catch(err){
         res.status(400).send(err)
     }
 })
 
 //GET /todos/:id | returns todo of passed id
-app.get('/todos/:id', (req, res) => {
+app.get('/todos/:id', async (req, res) => {
+    //check if id is invalid
     let id = req.params.id
     if (!ObjectID.isValid(id)){
         res.status(404).send('INVALID id')
         return
     }
 
-    Todo.findById(id).then((todo) => {
+    try{
+        let todo = await Todo.findById(id)
         if (todo === null){
             res.status(404).send(`todo with id: ${id} does not exist`)
             return
         }
-
         res.status(200).send(todo)
-    }).catch((err) => {
+    }catch(err){
         res.status(400).send('Error retrieving todo')
-    })
+    }
 })
 
 //DELETE /todos/:id | deletes a todo by its id if user is authenticated
-app.delete('/todos/:id', authenticate, (req, res) => {
+app.delete('/todos/:id', authenticate, async (req, res) => {
     let id = req.params.id
     //validate id
     if (!ObjectID.isValid(id)){
@@ -81,31 +80,28 @@ app.delete('/todos/:id', authenticate, (req, res) => {
         return
     }
 
-    //find the todo and check if user is authorized to remove it, if so remove it
-    Todo.findById(id).then(todo => {
+    try{
+        let todo = await Todo.findById(id)
         //if todo === null implies todo didn't exist in db
         if (todo === null){
             res.status(404).send(`todo with id: ${id} does not exist`)
             return
         }
+
         //todo.owner must be user
         if (todo.owner.toHexString() != req.user._id.toHexString()){
             res.status(401).send()
             return
         }
-        
-        todo.remove().then(todo => {
-            res.status(200).send(`todo ${todo} has been deleted`)
-        }).catch(err => {
-            res.status(400).send()
-        })
-    }).catch(err => {
+        todo = await todo.remove()
+        res.status(200).send(`todo ${todo} has been deleted`)
+    }catch(err){
         res.status(400).send('Error deleting todo')
-    })
+    }
 })
 
 //PATCH /todos/:id | updates a todo by its id by authorized users only
-app.patch('/todos/:id', authenticate, (req, res) => {
+app.patch('/todos/:id', authenticate, async (req, res) => {
     let todo_id = req.params.id
 
     //determine if id is valid
@@ -125,9 +121,8 @@ app.patch('/todos/:id', authenticate, (req, res) => {
     else if (body.completed)
         body.completedAt = Date.now()
 
-    //updating todo and promise success passes the updated todo b/c of new:true
-    Todo.findById(todo_id).then(todo => {
-        //if todo doesn't exist then it will be null
+    try{
+        let todo = await Todo.findById(todo_id)
         if (!todo){
             res.status(400).send(`todo with id: ${id} does not exist`)
             return
@@ -138,16 +133,12 @@ app.patch('/todos/:id', authenticate, (req, res) => {
             res.status(401).send()
             return
         }
-
-        //updaing todo
-        todo.update(body).then(todo => {
-            res.status(200).send()
-        }).catch(err => {
-            res.status(400).send(err)
-        })
-    }).catch(err => {
+        
+        todo = await todo.update(body)
+        res.status(200).send()
+    }catch(err){
         res.status(400).send(err)
-    })
+    }
 })
 
 //POST /users | creates a user if user is authenticated
@@ -171,23 +162,22 @@ app.post('/users', (req, res) => {
 })
 
 //POST /users/login | 'logs in' by creating an x-auth cookie
-app.post('/users/login', (req, res) => {
+app.post('/users/login', async (req, res) => {
     let body = _.pick(req.body, 'email', 'password')
 
-    User.findOne({
-        email: body.email
-    }).then(user => {
-        //we have to compare the hashed password stored in user with password
-        user.verifyPassword(body.password).then(user => {
-            //user is verified so we must set a cookie x-auth to user for persistent authentication
-            res.cookie('x-auth', user.tokens[0].token).status(200).send()
-        }).catch(() => {
-            res.status(401).send()
-        })
-    })
-    .catch(err => {
-        res.status(404).send(err)
-    })
+     try{
+         let user = await User.findOne({email: body.email})
+         if (!user)
+             throw new Error()
+         try{
+             user = await user.verifyPassword(body.password)
+             res.cookie('x-auth', user.tokens[0].token).status(200).send()
+         }catch(err){
+             res.status(401).send('Invalid email or password')
+         }
+     }catch(err){
+         res.status(404).send(err)
+     }
 })
 
 
@@ -205,7 +195,7 @@ app.delete('/users/me/logout', authenticate, (req, res) => {
 })
 
 //PATCH /users/me/update | allows users to update their information
-app.patch('/users/me/update', authenticate, (req, res) => {
+app.patch('/users/me/update', authenticate, async (req, res) => {
     let body = _.pick(req.body, 'description')
     //if description doesn't exist we should send bad request error
     if(!body.description){
@@ -213,12 +203,13 @@ app.patch('/users/me/update', authenticate, (req, res) => {
     }
 
     let id = req.user._id
-    User.findByIdAndUpdate(id, body, {new: true}).then((user) => {
-        //note that we do not have to check if user === null because user is authorized
+
+    try{
+        let user = await User.findByIdAndUpdate(id, body, {new: true})
         res.status(200).send(user)
-    }).catch(err => {
-        res.status(400).send(err)
-    })
+    }catch(err){
+        res.status(400).send('Error updating')
+    }
 })
 
 
