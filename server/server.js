@@ -42,14 +42,19 @@ app.post('/todos', authenticate,  (req, res) => {
     })
 })
 
-//GET /todos | returns all todos
-app.get('/todos', (req, res) => {
+//GET /todos | returns all todos for the authenticated user
+app.get('/todos',authenticate,(req, res) => {
 
-    Todo.find().then((todos) => {
+    if (!req.user){
+        res.status(401).send()
+        return
+    }
+
+    Todo.find({
+        owner: req.user._id
+    }).then(todos => {
         res.status(200).send(todos)
-    }, (err) => {
-        res.status(400).send(err)
-    })
+    }).catch(err => res.status(400).send(err))
 })
 
 //GET /todos/:id | returns todo of passed id
