@@ -38,17 +38,18 @@ app.post('/todos', authenticate,  (req, res) => {
 })
 
 //GET /todos | returns all todos for the authenticated user
-app.get('/todos',authenticate,(req, res) => {
+app.get('/todos',authenticate, async (req, res) => {
 
-    Todo.find({
-        owner: req.user._id
-    }).then(todos => {
+    try{
+        let todos = await Todo.find({owner:req.user._id})
         if(todos.length === 0){
             res.status(200).send('Sorry, you have no todos!')
             return
         }
         res.status(200).send(todos)
-    }).catch(err => res.status(400).send(err))
+    } catch(err) {
+        res.status(400).send(err)
+    }
 })
 
 //GET /todos/:id | returns todo of passed id
