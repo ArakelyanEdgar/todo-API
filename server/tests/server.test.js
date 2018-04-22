@@ -100,9 +100,10 @@ describe('GET /todos', () => {
     it('Should only return dummy todos', (done) => {
         request(app)
             .get('/todos')
+            .set('Cookie', [`x-auth=${users[0].tokens[0].token}`])
             .expect(200)
-            .expect((res) =>{
-                expect(res.body.length).toBe(2)
+            .expect(res =>{
+                expect(res.body.length).toBe(1)
             })
             .end((err,res) => {
                 
@@ -113,9 +114,8 @@ describe('GET /todos', () => {
                 //checking only dummy todos exist
                 Todo.find().then(todos => {
                     expect(todos[0].text).toBe('First test todo')
-                    expect(todos[1].text).toBe('Second test todo')
                     done()
-                }, (err) => {
+                }, err => {
                     done(err)
                 })
             })      

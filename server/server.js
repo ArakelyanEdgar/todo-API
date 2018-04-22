@@ -53,6 +53,11 @@ app.get('/todos',authenticate,(req, res) => {
     Todo.find({
         owner: req.user._id
     }).then(todos => {
+        if(todos.length === 0){
+            res.status(200).send('Sorry, you have no todos!')
+            return
+        }
+        
         res.status(200).send(todos)
     }).catch(err => res.status(400).send(err))
 })
