@@ -8,13 +8,15 @@ const {ObjectID} = require('mongodb')
 const jwt = require('jsonwebtoken')
 
 //deleting all docs from Todo before running
-beforeEach((done) => {
-    createTodos(todos)
-        .then(() => {
-            return createUsers(users)
-        })
-        .then(() => done())
-        .catch(done => done(err))
+beforeEach(async () => {
+
+    try{
+        await createTodos(todos)
+        await createUsers(users)
+        return 
+    }catch(err){
+        throw new Error()
+    }
 })
 
 describe('POST /todos', () => {
