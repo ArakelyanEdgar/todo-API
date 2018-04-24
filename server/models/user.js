@@ -2,6 +2,7 @@ const mongoose = require('mongoose')
 let Validator = require('validator')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')
+const {ObjectID} = require('mongodb')
 
 let schemaUser = new mongoose.Schema({
     email: {
@@ -31,6 +32,12 @@ let schemaUser = new mongoose.Schema({
             required: true
         },
         token: {
+            type: String,
+            required: true
+        }
+    }],
+    friends: [{
+        email: {
             type: String,
             required: true
         }
@@ -80,6 +87,21 @@ schemaUser.methods.generateAuthToken = function(){
     return new Promise(resolve => {
         this.save().then(() => {
             resolve(token)
+        })
+    })
+}
+
+//Creates an instance method for the schema so that I can access this as I don't want to make an es5 function in server.js
+schemaUser.methods.addFriend = function(email){
+    //determine if user is already a friend
+    return new Promise((resolve, reject) => {
+        this.friends.forEach(friend => {
+            if (friend.email === email)
+                reject()
+        })
+        this.friends.push({email})
+        this.save().then(() => {
+            resolve()
         })
     })
 }

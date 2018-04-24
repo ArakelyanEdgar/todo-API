@@ -213,6 +213,30 @@ app.patch('/users/me/update', authenticate, async (req, res) => {
     }
 })
 
+//POST /users/me/addfriend | adds a friend to the authenticated user
+app.post('/users/me/addfriend', authenticate, async (req, res) => {
+    let body = _.pick(req.body, 'email')
+
+    //if email isn't provided then bad request
+    if (!body.email){
+        res.status(400).send()
+        return
+    }
+
+    try{
+        //check if user with email exists
+        let user = await User.findOne(body)
+        if (!user){
+            throw new Error()
+        }
+        //add friend to the user's friends list
+        await req.user.addFriend(body.email)
+        res.status(200).send(`${body.email} has been added to your friend's list`)
+    }catch(err){
+        res.status(400).send('Error friending user :(')
+    }
+}) 
+
 
 let port = process.env.PORT
 app.listen(port, () => {
