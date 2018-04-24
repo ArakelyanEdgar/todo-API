@@ -214,7 +214,7 @@ app.patch('/users/me/update', authenticate, async (req, res) => {
 })
 
 //POST /users/me/addfriend | adds a friend to the authenticated user
-app.post('/users/me/addfriend', authenticate, async (req, res) => {
+app.post('/users/me/friends', authenticate, async (req, res) => {
     let body = _.pick(req.body, 'email')
 
     //if email isn't provided then bad request
@@ -236,6 +236,8 @@ app.post('/users/me/addfriend', authenticate, async (req, res) => {
         res.status(400).send('Error friending user :(')
     }
 }) 
+
+
 
 
 let port = process.env.PORT
