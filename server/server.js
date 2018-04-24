@@ -200,6 +200,7 @@ app.patch('/users/me/update', authenticate, async (req, res) => {
     //if description doesn't exist we should send bad request error
     if(!body.description){
         res.status(400).send()
+        return
     }
 
     let id = req.user._id

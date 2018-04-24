@@ -35,7 +35,7 @@ const todos = [{
 }]
 
 //resetting test db for todo collection and then storing dummy todos
-const createTodos = (todos) => {
+const createTodos = todos => {
     return new Promise((resolve, reject) => {
         Todo.remove({}).then(() => {
             return Todo.insertMany(todos, (err, docs) => {

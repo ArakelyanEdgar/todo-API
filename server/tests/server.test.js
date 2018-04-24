@@ -5,6 +5,7 @@ const Todo = require('../models/todo').Todo
 const User = require('../models/user').User
 const {todos, users, createTodos, createUsers} = require('./seed/seed')
 const {ObjectID} = require('mongodb')
+const {endTest} = require('./middleware/endTest')
 const jwt = require('jsonwebtoken')
 
 //deleting all docs from Todo before running
@@ -74,7 +75,6 @@ describe('POST /todos', () => {
                 }, (err) => {
                     done(err)
                 })
-
             })
     })
 
@@ -86,13 +86,7 @@ describe('POST /todos', () => {
                 owner: users[0]._id
             })
             .expect(401)
-            .end((err, res) => {
-                if (err){
-                    done(err)
-                    return
-                }
-                done()
-            })
+            .end((err,res) => endTest(err, res, done))
     })
 })
 
@@ -131,28 +125,14 @@ describe('GET /todos/:id', () => {
         request(app)
             .get('/todos/1')
             .expect(404)
-            .end((err, res) => {
-                if (err){
-                    done(err)
-                    return
-                }
-
-                done()
-            })
+            .end((err,res) => endTest(err, res, done))
     })
 
     it('Should return 404 for nonexistent id', (done) => {
         request(app)
             .get('/todos/5acef7987b2c8628fcb56a67')
             .expect(404)
-            .end((err, res) => {
-                if (err){
-                    done(err)
-                    return
-                }
-
-                done()
-            })
+            .end((err,res) => endTest(err, res, done))
     })
 
     it('Should return 200 for id that exists in Todo db', (done) => {
@@ -163,14 +143,7 @@ describe('GET /todos/:id', () => {
             request(app)
                 .get(`/todos/${id}`)
                 .expect(200)
-                .end((err, res) => {
-                    if (err){
-                        done(err)
-                        return
-                    }
-    
-                    done()
-                })
+                .end((err,res) => endTest(err, res, done))
         }).catch(err => {
             done(err)
         })
@@ -185,13 +158,7 @@ describe('DELETE /todos/:id', () => {
             .delete(`/todos/${id}`)
             .send({})
             .expect(401)
-            .end((err, res) => {
-                if (err){
-                    done(err)
-                    return
-                }
-                done()
-            })
+            .end((err,res) => endTest(err, res, done))
     })
 
     it('Should respond with status 404 for invalid id', (done) => {
@@ -199,14 +166,7 @@ describe('DELETE /todos/:id', () => {
             .delete('/todos/1')
             .set('Cookie', [`x-auth=${users[0].tokens[0].token}`])
             .expect(404)
-            .end((err, res) => {
-                if (err){
-                    done(err)
-                    return
-                }
-
-                done()
-            })
+            .end((err,res) => endTest(err, res, done))
     })
 
     it('Should respond with status 404 for id that does not exist in db', (done) => {
@@ -214,14 +174,7 @@ describe('DELETE /todos/:id', () => {
             .delete('/todos/5ad01e3843b4bb0d0c9de6c9')
             .set('Cookie', [`x-auth=${users[0].tokens[0].token}`])
             .expect(404)
-            .end((err, res) => {
-                if (err){
-                    done(err)
-                    return
-                }
-
-                done()
-            })
+            .end((err,res) => endTest(err, res, done))
     })
 
     it('Should respond with status 200 for deleting id', (done) => {
@@ -234,14 +187,7 @@ describe('DELETE /todos/:id', () => {
                     .delete(`/todos/${todo_id}`)
                     .set('Cookie', [`x-auth=${token}`])
                     .expect(200)
-                    .end((err, res) => {
-                        if (err){
-                            done(err)
-                            return
-                        }
-        
-                        done()
-                    })
+                    .end((err,res) => endTest(err, res, done))
             }).catch(err => {
                 done(err)
             })
@@ -257,14 +203,7 @@ describe('PATCH /todos/:id', () => {
             .patch('/todos/1')
             .set('Cookie', [`x-auth=${users[0].tokens[0].token}`])
             .expect(404)
-            .end((err, res) => {
-                if (err){
-                    done(err)
-                    return
-                }
-
-                done()
-            })
+            .end((err,res) => endTest(err, res, done))
     })
 
     it('Should respond with 400 status for id that is not in todo db', (done) => {
@@ -276,14 +215,7 @@ describe('PATCH /todos/:id', () => {
                 completed: true
             })
             .expect(400)
-            .end((err, res) => {
-                if (err){
-                    done(err)
-                    return
-                }
-
-                done()
-            })
+            .end((err,res) => endTest(err, res, done))
     })
 
     it('Should respond with 200 status for id that is in todo', (done) => {
@@ -302,14 +234,7 @@ describe('PATCH /todos/:id', () => {
                         completed
                     })
                     .expect(200)
-                    .end((err, res) => {
-                        if (err){
-                            done(err)
-                            return
-                        }
-        
-                        done()
-                    })
+                    .end((err,res) => endTest(err, res, done))
                 }).catch(err => {
                     done(err)
                 })
@@ -338,14 +263,7 @@ describe('POST /users', () => {
             .post('/users')
             .send(user)
             .expect(200)
-            .end((err, res) => {
-                if (err){
-                    done(err)
-                    return
-                }
-
-                done()
-            })
+            .end((err,res) => endTest(err, res, done))
     })
 })
 
@@ -355,14 +273,7 @@ describe('GET /users/me', () => {
         request(app)
             .get('/users/me')
             .expect(401)
-            .end((err,res) => {
-                if (err){
-                    done(err)
-                    return
-                }
-
-                done()
-            })
+            .end((err,res) => endTest(err, res, done))
     })
 
     //user is authorized because req.header is set to auth token
@@ -373,14 +284,7 @@ describe('GET /users/me', () => {
             .set('x-auth', token)
             .set('Cookie', [`x-auth=${token}`])
             .expect(200)
-            .end((err, res) => {
-                if (err){
-                    done(err)
-                    return
-                }
-
-                done()
-            })
+            .end((err,res) => endTest(err, res, done))
     })
 })
 
@@ -392,14 +296,7 @@ describe('POST /users/login', () => {
                 email: 'bobfromidaho@gmail.com'
             })
             .expect(404)
-            .end((err, res) => {
-                if (err){
-                    done(err)
-                    return
-                }
-
-                done()
-            })
+            .end((err,res) => endTest(err, res, done))
     })
 
     it('Should return STATUS 401 for user that is unauthorized with invalid password', (done) => {
@@ -411,14 +308,7 @@ describe('POST /users/login', () => {
                 .post('/users/login')
                 .send({email, password})
                 .expect(401)
-                .end((err, res) => {
-                    if (err){
-                        done(err)
-                        return
-                    }
-    
-                    done()
-                })
+                .end((err,res) => endTest(err, res, done))
         }).catch(err => done(err))
     })
 
@@ -439,14 +329,7 @@ describe('POST /users/login', () => {
                         password: 'password'
                     })
                     .expect(200)
-                    .end((err, res) => {
-                        if (err){
-                            done(err)
-                            return
-                        }
-
-                        done()
-                    })
+                    .end((err,res) => endTest(err, res, done))
             })
     })
 })
@@ -457,14 +340,7 @@ describe('DELETE /users/me/logout', () => {
         request(app)
             .delete('/users/me/logout')
             .expect(401)
-            .end((err, res) => {
-                if (err){
-                    done(err)
-                    return
-                }
-
-                done()
-            })
+            .end((err,res) => endTest(err, res, done))
     })
 
     it('Should return STATUS 200 for authorized user', (done) => {
@@ -473,13 +349,27 @@ describe('DELETE /users/me/logout', () => {
             .delete('/users/me/logout')
             .set('Cookie', [`x-auth=${token}`])
             .expect(200)
-            .end((err, res) => {
-                if (err){
-                    done(err)
-                    return
-                }
+            .end((err,res) => endTest(err, res, done))
+    })
+})
 
-                done()
+describe('PATCH /users/me/update', () => {
+    it('Should return STATUS 401 for unauthorized user', (done) => {
+        request(app)
+            .patch('/users/me/update')
+            .send({
+                description: "test"
             })
+            .expect(401)
+            .end((err,res) => endTest(err, res, done))
+    })
+
+    it('Should return STATUS 400 for not sending description property', done => {
+        request(app)
+            .patch('/users/me/update')
+            .set('Cookie', [`x-auth=${users[0].tokens[0].token}`])
+            .send({email: 'jack@gmail.com'})
+            .expect(400)
+            .end((err,res) => endTest(err, res, done))
     })
 })
