@@ -26,7 +26,7 @@ describe('POST /todos', () => {
     //sending a post request to app to save doc. 
     //If the db doesn't have exactly one doc with the ascribed text then there is an error
     //if db has a single doc then it's text field must be the doc's text
-    it('Returns STATUS 200 for saved todo', (done) => {
+    it('Returns STATUS 200 for saved todo', done => {
         let user = users[0]   
         request(app)
             .post('/todos')
@@ -36,7 +36,7 @@ describe('POST /todos', () => {
                 owner: user._id
             })
             .expect(200)
-            .expect((res) => {
+            .expect(res => {
                 expect(res.body.text).toBe(text)
             })
             .end((err, res) => {
@@ -55,13 +55,12 @@ describe('POST /todos', () => {
     })
 
     //sending invalid data and testing if no doc is stored in todos db which is the desired behavior, not there are 2 dummy todos
-    it('Should return 400 for empty todo', (done) => {
+    it('Should return 400 for empty todo', done => {
         let user = users[0] 
         request(app)
             .post('/todos')
             .set('Cookie', [`x-auth=${user.tokens[0].token}`])
-            .send({
-            })
+            .send({})
             .expect(400)
             .end((err, res) => {
                 if (err){
@@ -69,16 +68,16 @@ describe('POST /todos', () => {
                     return
                 }
 
-                Todo.find().then((todos) => {
+                Todo.find().then(todos => {
                     expect(todos.length).toBe(2)
                     done()
-                }, (err) => {
+                }, err => {
                     done(err)
                 })
             })
     })
 
-    it('Should return 401 for unauthorized user(not logged in)', (done) => {
+    it('Should return 401 for unauthorized user(not logged in)', done => {
         request(app)
             .post('/todos')
             .send({
@@ -93,7 +92,7 @@ describe('POST /todos', () => {
 //testing GET, should only return 2 docs whose text are equivalent to the dummy todos
 describe('GET /todos', () => {
 
-    it('Should only return dummy todos', (done) => {
+    it('Should only return dummy todos', done => {
         request(app)
             .get('/todos')
             .set('Cookie', [`x-auth=${users[0].tokens[0].token}`])
@@ -121,7 +120,7 @@ describe('GET /todos', () => {
 
 describe('GET /todos/:id', () => {
 
-    it('Should return 404 for invalid id', (done) => {
+    it('Should return 404 for invalid id', done => {
         request(app)
             .get('/todos/1')
             .expect(404)
@@ -137,8 +136,8 @@ describe('GET /todos/:id', () => {
 
     it('Should return 200 for id that exists in Todo db', (done) => {
         let id = ""
-        Todo.findOne().then((doc) => {
-            id = doc._id
+        Todo.findOne().then(todo => {
+            id = todo._id
         }).then(() => {
             request(app)
                 .get(`/todos/${id}`)
@@ -152,7 +151,7 @@ describe('GET /todos/:id', () => {
 
 describe('DELETE /todos/:id', () => {
 
-    it('Should return STATUS 401 for unauthorized user', (done) => {
+    it('Should return STATUS 401 for unauthorized user', done => {
         let id = users[0]._id.toHexString()
         request(app)
             .delete(`/todos/${id}`)
@@ -161,7 +160,7 @@ describe('DELETE /todos/:id', () => {
             .end((err,res) => endTest(err, res, done))
     })
 
-    it('Should respond with status 404 for invalid id', (done) => {
+    it('Should respond with status 404 for invalid id', done => {
         request(app)
             .delete('/todos/1')
             .set('Cookie', [`x-auth=${users[0].tokens[0].token}`])
@@ -169,7 +168,7 @@ describe('DELETE /todos/:id', () => {
             .end((err,res) => endTest(err, res, done))
     })
 
-    it('Should respond with status 404 for id that does not exist in db', (done) => {
+    it('Should respond with status 404 for id that does not exist in db', done => {
         request(app)
             .delete('/todos/5ad01e3843b4bb0d0c9de6c9')
             .set('Cookie', [`x-auth=${users[0].tokens[0].token}`])
@@ -177,10 +176,10 @@ describe('DELETE /todos/:id', () => {
             .end((err,res) => endTest(err, res, done))
     })
 
-    it('Should respond with status 200 for deleting id', (done) => {
+    it('Should respond with status 200 for deleting id', done => {
         Todo.findOne().then(todo => {
             let todo_id = todo._id
-            User.findById(todo.owner).then(user => {
+            return User.findById(todo.owner).then(user => {
                 let token = user.tokens[0].token
 
                 request(app)
@@ -188,8 +187,6 @@ describe('DELETE /todos/:id', () => {
                     .set('Cookie', [`x-auth=${token}`])
                     .expect(200)
                     .end((err,res) => endTest(err, res, done))
-            }).catch(err => {
-                done(err)
             })
         }).catch(err => {
             done(err)
@@ -198,7 +195,7 @@ describe('DELETE /todos/:id', () => {
 })
 
 describe('PATCH /todos/:id', () => {
-    it('Should respond with 404 status for invalid id', (done) => {
+    it('Should respond with 404 status for invalid id', done => {
         request(app)
             .patch('/todos/1')
             .set('Cookie', [`x-auth=${users[0].tokens[0].token}`])
@@ -206,7 +203,7 @@ describe('PATCH /todos/:id', () => {
             .end((err,res) => endTest(err, res, done))
     })
 
-    it('Should respond with 400 status for id that is not in todo db', (done) => {
+    it('Should respond with 400 status for id that is not in todo db', done => {
         request(app)
             .patch('/todos/00000000bcf86cd799439011')
             .set('Cookie', [`x-auth=${users[0].tokens[0].token}`])
@@ -218,7 +215,7 @@ describe('PATCH /todos/:id', () => {
             .end((err,res) => endTest(err, res, done))
     })
 
-    it('Should respond with 200 status for id that is in todo', (done) => {
+    it('Should respond with 200 status for id that is in todo', done => {
         Todo.findOne().then(todo => {
             let id = todo._id
             let user_id = todo.owner
@@ -244,7 +241,7 @@ describe('PATCH /todos/:id', () => {
 
 describe('POST /users', () => {
 
-    it('Should return STATUS 200 for user posting', (done) => {
+    it('Should return STATUS 200 for user posting', done => {
         let userID = new ObjectID()
         let user = {
             _id: userID,
@@ -269,7 +266,7 @@ describe('POST /users', () => {
 
 describe('GET /users/me', () => {
 
-    it('Should return STATUS 401 for user without auth', (done) => {
+    it('Should return STATUS 401 for user without auth', done => {
         request(app)
             .get('/users/me')
             .expect(401)
@@ -289,7 +286,8 @@ describe('GET /users/me', () => {
 })
 
 describe('POST /users/login', () => {
-    it('should return STATUS 404 for user that does not exist', (done) => {
+    
+    it('should return STATUS 404 for user that does not exist', done => {
         request(app)
             .post('/users/login')
             .send({
@@ -299,7 +297,7 @@ describe('POST /users/login', () => {
             .end((err,res) => endTest(err, res, done))
     })
 
-    it('Should return STATUS 401 for user that is unauthorized with invalid password', (done) => {
+    it('Should return STATUS 401 for user that is unauthorized with invalid password', done => {
         User.findOne().then(user => {
             let email = user.email
             let password = 'notrealpassword'
@@ -312,7 +310,7 @@ describe('POST /users/login', () => {
         }).catch(err => done(err))
     })
 
-    it('should return STATUS 200 for user that is authorized with valid password', (done) => {
+    it('should return STATUS 200 for user that is authorized with valid password', done => {
         let user = {
             email: 'testemail@gmail.com',
             password: 'password'
@@ -336,14 +334,14 @@ describe('POST /users/login', () => {
 
 describe('DELETE /users/me/logout', () => {
     //will always be 401 since we are not setting cookies
-    it('Should return STATUS 401 for unauthorized user', (done) => {
+    it('Should return STATUS 401 for unauthorized user', done => {
         request(app)
             .delete('/users/me/logout')
             .expect(401)
             .end((err,res) => endTest(err, res, done))
     })
 
-    it('Should return STATUS 200 for authorized user', (done) => {
+    it('Should return STATUS 200 for authorized user', done => {
         let token = users[0].tokens[0].token
         request(app)
             .delete('/users/me/logout')
@@ -354,7 +352,7 @@ describe('DELETE /users/me/logout', () => {
 })
 
 describe('PATCH /users/me/update', () => {
-    it('Should return STATUS 401 for unauthorized user', (done) => {
+    it('Should return STATUS 401 for unauthorized user', done => {
         request(app)
             .patch('/users/me/update')
             .send({
